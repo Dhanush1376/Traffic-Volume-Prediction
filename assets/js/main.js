@@ -54,8 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
             alertsContainer.innerHTML = '';
             statusData.active_alerts.forEach(alertText => {
                 const el = document.createElement('div');
-                el.className = 'alert-item ' + (statusData.current_traffic_level === 'High' ? 'severe' : (statusData.current_traffic_level === 'Moderate' ? 'warning' : 'normal'));
-                el.innerHTML = `<span>⚠️</span> ${alertText}`;
+                const isSevere = statusData.current_traffic_level === 'High';
+                const isMod = statusData.current_traffic_level === 'Moderate';
+                
+                el.className = 'alert-item ' + (isSevere ? 'severe' : (isMod ? 'warning' : 'normal'));
+                const iconClass = isSevere ? 'fa-triangle-exclamation' : (isMod ? 'fa-circle-exclamation' : 'fa-circle-check');
+                
+                // Strip emoji from backend text if cached
+                const cleanText = alertText.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+                
+                el.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${cleanText}</span>`;
                 alertsContainer.appendChild(el);
             });
 
@@ -76,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('last-updated').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
             const alertsContainer = document.getElementById('alerts-container');
-            alertsContainer.innerHTML = '<div class="alert-item warning"><span>⚠️</span> 🟡 Expect moderate delays on major arterials.</div>';
+            alertsContainer.innerHTML = '<div class="alert-item warning"><i class="fa-solid fa-circle-exclamation"></i> <span>Expect moderate delays on major arterials.</span></div>';
             
             const mockHeatData = [12000, 8000, 5000, 4000, 6000, 15000, 25000, 35000, 45000, 42000, 38000, 35000, 32000, 30000, 28000, 32000, 38000, 48000, 52000, 45000, 35000, 25000, 18000, 15000];
             const mockLabels = Array.from({length: 24}, (_, i) => `${i.toString().padStart(2, '0')}:00`);
@@ -194,9 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
             
             data.insights.forEach(insight => {
+                const cleanText = insight.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
                 const el = document.createElement('div');
-                el.className = 'insight-block glass';
-                el.innerText = insight;
+                el.className = 'insight-block glass-panel hover-glow';
+                el.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${cleanText}</span>`;
                 container.appendChild(el);
             });
         } catch (error) {
@@ -205,15 +214,15 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
             
             const mockInsights = [
-                "🧠 Traffic is typically 40% higher on Mondays at 9 AM compared to mid-week averages.",
-                "⏳ Best time to travel today: 11:00 AM - 3:00 PM to avoid primary congestion.",
-                "🚧 Avoid Outer Ring Road corridors from 5:00 PM to 7:00 PM due to consistent peak congestion."
+                "Traffic is typically 40% higher on Mondays at 9 AM compared to mid-week averages.",
+                "Best time to travel today: 11:00 AM - 3:00 PM to avoid primary congestion.",
+                "Avoid Outer Ring Road corridors from 5:00 PM to 7:00 PM due to consistent peak congestion."
             ];
             
             mockInsights.forEach(insight => {
                 const el = document.createElement('div');
-                el.className = 'insight-block glass';
-                el.innerText = insight;
+                el.className = 'insight-block glass-panel hover-glow';
+                el.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${insight}</span>`;
                 container.appendChild(el);
             });
         }
