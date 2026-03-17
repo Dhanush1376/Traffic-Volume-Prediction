@@ -1,4 +1,5 @@
 # Traffic-Volume-Prediction
+<<<<<<< HEAD
 
 This project focuses on predicting real-time traffic volume across various streets in Bangalore using machine learning and data-driven analysis. The goal is to help city planners, commuters, and traffic management systems make smarter decisions to reduce congestion, estimate travel times, and improve urban mobility.
 
@@ -76,3 +77,6 @@ Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) for
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+=======
+This project focuses on predicting real-time traffic volume across various streets in Bangalore using machine learning and data-driven analysis. The goal is to help city planners, commuters, and traffic management systems make smarter decisions to reduce congestion, estimate travel times, and improve urban mobility.
+>>>>>>> 7ee24d30c749783c92fbd81ff06897b6b2321b7e
