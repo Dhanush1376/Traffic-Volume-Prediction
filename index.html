@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Assistant</title>
+    <!-- Google Fonts & Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">Traffic<span style="color:var(--primary)">Assistant</span></div>
+            <nav>
+                <ul class="nav-links">
+                    <li class="nav-item active" data-section="dashboard">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Dashboard</span>
+                    </li>
+                    <li class="nav-item" data-section="smart-prediction">
+                        <span class="nav-icon">🚗</span>
+                        <span class="nav-text">Smart Journey</span>
+                    </li>
+                    <li class="nav-item" data-section="simulation">
+                        <span class="nav-icon">⏳</span>
+                        <span class="nav-text">Time Simulator</span>
+                    </li>
+                    <li class="nav-item" data-section="insights">
+                        <span class="nav-icon">🧠</span>
+                        <span class="nav-text">AI Insights</span>
+                    </li>
+                    <li class="nav-item" data-section="planner">
+                        <span class="nav-icon">📅</span>
+                        <span class="nav-text">Weekly Planner</span>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <div>
+                    <h1 id="section-title">Home Dashboard</h1>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;" id="server-status-text">Connecting to intelligence core...</p>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">👤</div>
+                </div>
+            </header>
+
+            <!-- Alerts Container -->
+            <div id="alerts-container" class="alerts-container"></div>
+
+            <!-- 1. Dashboard Section -->
+            <section id="dashboard" class="dashboard-section active">
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card glass">
+                        <div class="stat-label">Current Traffic Level</div>
+                        <div class="stat-value" id="current-traffic-level">Analyzing...</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">System Health</div>
+                        <div class="stat-value" style="color: #00ff7f;" id="system-health">Operational</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-label">Last Updated</div>
+                        <div class="stat-value" style="font-size: 1.25rem;" id="last-updated">Just now</div>
+                    </div>
+                </div>
+                
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Live Traffic Volume (24h Heatmap)</h2>
+                <div class="chart-container glass" style="height: 400px;">
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+            </section>
+
+            <!-- 2. Smart Prediction Section -->
+            <section id="smart-prediction" class="dashboard-section">
+                <div class="glass" style="padding: 2.5rem; max-width: 800px; margin: 0 auto;">
+                    <h2 style="margin-bottom: 0.5rem;">Plan Your Smart Commute</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Tell the AI when you need to arrive, and it will calculate the optimal departure time to avoid congestion.</p>
+                    
+                    <form id="smartPredictForm" class="prediction-form">
+                        <div class="form-group">
+                            <label>Starting Point</label>
+                            <select id="sourceInput" required>
+                                <option value="Indiranagar">Indiranagar</option>
+                                <option value="Whitefield">Whitefield</option>
+                                <option value="Koramangala">Koramangala</option>
+                                <option value="Electronic City">Electronic City</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Destination</label>
+                            <select id="destInput" required>
+                                <option value="MG Road">MG Road</option>
+                                <option value="Manyata Tech Park">Manyata Tech Park</option>
+                                <option value="HSR Layout">HSR Layout</option>
+                                <option value="Kempegowda Airport">Kempegowda Airport</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Desired Arrival Time</label>
+                            <input type="time" id="arrivalTimeInput" required value="09:00">
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top: 1.5rem;">Calculate Optimal Route</button>
+                    </form>
+                </div>
+
+                <!-- Prediction Results -->
+                <div id="smartResultCard" class="glass result-card" style="display: none; padding: 2.5rem; max-width: 800px; margin: 2rem auto; text-align: center;">
+                    <div class="result-badge" id="trafficLevelBadge">Traffic Level</div>
+                    <h3 style="font-size: 1.25rem; color: var(--text-muted); margin-top: 1rem;">Optimal Departure Time</h3>
+                    <div id="smartRecDeparture" style="font-size: 4rem; font-weight: 800; color: var(--primary); margin: 0.5rem 0;">--:--</div>
+                    <p id="smartRecText" style="font-size: 1.125rem; line-height: 1.6; margin-top: 1rem;">Analyzing route details...</p>
+                    <div style="margin-top: 1.5rem; display: inline-block; padding: 1rem 2rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <span style="color: var(--text-muted);">Est. Travel Time:</span> <strong id="smartDuration" style="font-size: 1.25rem;">-- mins</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. What-if Simulation Section -->
+            <section id="simulation" class="dashboard-section">
+                <div class="glass" style="padding: 2.5rem;">
+                    <h2>Time Scheduler Simulation</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Experiment with different departure times to see how traffic impacts your journey.</p>
+                    
+                    <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;">
+                        <form id="simForm" class="prediction-form" style="flex: 1; min-width: 300px;">
+                            <div class="form-group">
+                                <label>Test Departure Time</label>
+                                <input type="time" id="simTimeInput" required value="08:00">
+                            </div>
+                            <button type="submit" class="btn-secondary" style="margin-top: 1rem;">Simulate Journey</button>
+                        </form>
+                        
+                        <div id="simResultArea" style="flex: 2; min-width: 300px; display: none;">
+                            <div class="stat-card glass" style="background: rgba(0,242,254,0.05); border-color: rgba(0,242,254,0.2);">
+                                <h3>Simulation Results for <span id="simTargetTime" style="color: var(--primary);">--</span></h3>
+                                <div style="display: flex; gap: 2rem; margin-top: 1.5rem;">
+                                    <div>
+                                        <div class="stat-label">Predicted Travel Time</div>
+                                        <div class="stat-value" id="simDuration">-- mins</div>
+                                    </div>
+                                    <div>
+                                        <div class="stat-label">Relative Traffic Volume</div>
+                                        <div class="stat-value" id="simVolume" style="color: #4facfe;">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. AI Insights Section -->
+            <section id="insights" class="dashboard-section">
+                <div style="max-width: 900px; margin: 0 auto;">
+                    <h2 style="margin-bottom: 1.5rem;">Intelligence Briefing</h2>
+                    <div id="insights-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Insights will be injected here via JS -->
+                        <div class="glass" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                            Analyzing traffic patterns...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Weekly Planner -->
+            <section id="planner" class="dashboard-section">
+                <div class="glass" style="padding: 2.5rem;">
+                    <h2>Weekly Commute Trends</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Identify the best days of the week for travel.</p>
+                    <div class="chart-container" style="height: 400px; padding: 0;">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav glass">
+        <div class="nav-item active" data-section="dashboard">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Dash</span>
+        </div>
+        <div class="nav-item" data-section="smart-prediction">
+            <span class="nav-icon">🚗</span>
+            <span class="nav-text">Route</span>
+        </div>
+        <div class="nav-item" data-section="simulation">
+            <span class="nav-icon">⏳</span>
+            <span class="nav-text">Sim</span>
+        </div>
+        <div class="nav-item" data-section="insights">
+            <span class="nav-icon">🧠</span>
+            <span class="nav-text">AI</span>
+        </div>
+    </nav>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
