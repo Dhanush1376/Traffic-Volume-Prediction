@@ -92,11 +92,53 @@ def predict_traffic():
 
     recommendation = f"Leave at {rec_time_str} to reach by {arr_time_str} with {level_val.lower()} traffic."
 
+    # Generate Weather Impact
+    weather_options = [
+        ("Clear skies, optimal conditions.", 0),
+        ("Light rain, drive carefully.", 5),
+        ("Heavy rain, reduced visibility.", 15)
+    ]
+    weather = random.choices(weather_options, weights=[70, 20, 10])[0]
+    
+    # Calculate Routes
+    base_cost = random.randint(150, 250) # INR
+    
+    fastest_duration = total_duration + weather[1]
+    eco_duration = int(fastest_duration * 1.15) # Takes 15% longer but saves fuel
+    balanced_duration = int(fastest_duration * 1.05)
+    
+    routes = [
+        {
+            "type": "Fastest",
+            "duration": fastest_duration,
+            "cost": base_cost + 40, # Tolls
+            "emissions": "Medium"
+        },
+        {
+            "type": "Eco-Friendly",
+            "duration": eco_duration,
+            "cost": base_cost - 30, # Fuel saved
+            "emissions": "Low"
+        },
+        {
+            "type": "Balanced",
+            "duration": balanced_duration,
+            "cost": base_cost,
+            "emissions": "Medium"
+        }
+    ]
+    
+    parking_tiers = ["High Availability", "Moderate Availability", "Limited Parking", "Parking Full"]
+    dest_parking = random.choice(parking_tiers)
+
     return jsonify({
         "recommended_departure": rec_time_str,
-        "estimated_duration_mins": total_duration,
+        "estimated_duration_mins": fastest_duration,
         "traffic_level": level_val,
-        "recommendation_text": recommendation
+        "recommendation_text": recommendation,
+        "routes": routes,
+        "weather_impact": weather[0],
+        "parking_availability": dest_parking
     })
 
 @app.route('/api/simulation', methods=['POST'])

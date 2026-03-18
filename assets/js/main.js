@@ -3,7 +3,7 @@ const API_BASE = 'http://127.0.0.1:5000/api';
 document.addEventListener('DOMContentLoaded', () => {
     // ---- Navigation Logic ----
     const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('.dashboard-section');
+    const sections = document.querySelectorAll('.section');
     const title = document.getElementById('section-title');
 
     navItems.forEach(item => {
@@ -24,9 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Update Header Title depending on section
-            const textMatch = item.querySelector('.nav-text');
-            if (title && textMatch) {
-                title.innerText = textMatch.innerText + (target === 'dashboard' ? ' Overview' : '');
+            // Update Header Title
+            if (title) {
+                const navText = item.innerText.trim();
+                title.innerHTML = `${navText} <span>${target === 'dashboard' ? 'Overview' : ''}</span>`;
             }
 
             // Trigger resize for charts to adjust to new visible container
@@ -50,22 +51,37 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('last-updated').innerText = timeObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             // Handle Alerts
-            const alertsContainer = document.getElementById('alerts-container');
-            alertsContainer.innerHTML = '';
-            statusData.active_alerts.forEach(alertText => {
-                const el = document.createElement('div');
-                const isSevere = statusData.current_traffic_level === 'High';
-                const isMod = statusData.current_traffic_level === 'Moderate';
+            const alertsPanel = document.getElementById('alerts-container');
+            const alertList = document.getElementById('alert-list');
+            const alertCount = document.getElementById('alert-count');
+            
+            if (statusData.active_alerts.length > 0) {
+                alertsPanel.style.display = 'block';
+                alertList.innerHTML = '';
+                alertCount.innerText = statusData.active_alerts.length;
                 
-                el.className = 'alert-item ' + (isSevere ? 'severe' : (isMod ? 'warning' : 'normal'));
-                const iconClass = isSevere ? 'fa-triangle-exclamation' : (isMod ? 'fa-circle-exclamation' : 'fa-circle-check');
-                
-                // Strip emoji from backend text if cached
-                const cleanText = alertText.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
-                
-                el.innerHTML = `<i class="fa-solid ${iconClass}"></i> <span>${cleanText}</span>`;
-                alertsContainer.appendChild(el);
-            });
+                statusData.active_alerts.forEach(alertText => {
+                    const isSevere = statusData.current_traffic_level === 'High';
+                    const isMod = statusData.current_traffic_level === 'Moderate';
+                    
+                    const severityClass = isSevere ? 'error' : (isMod ? 'warn' : 'ok');
+                    const cleanText = alertText.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
+                    
+                    const el = document.createElement('div');
+                    el.className = 'alert-row';
+                    el.innerHTML = `
+                        <div class="alert-dot ${severityClass}"></div>
+                        <div class="alert-content">
+                            <div class="alert-title">${cleanText}</div>
+                            <div class="alert-meta">Detected in real-time stream</div>
+                        </div>
+                        <div class="alert-severity ${severityClass}">${isSevere ? 'Critical' : (isMod ? 'Significant' : 'Normal')}</div>
+                    `;
+                    alertList.appendChild(el);
+                });
+            } else {
+                alertsPanel.style.display = 'none';
+            }
 
             // Fetch Heatmap Data
             const heatRes = await fetch(`${API_BASE}/heatmap`);
@@ -110,19 +126,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
 
                 // Display Results
+                const placeholder = document.getElementById('routingPlaceholder');
                 const card = document.getElementById('smartResultCard');
+                
+                if (placeholder) placeholder.style.display = 'none';
                 card.style.display = 'block';
                 card.style.animation = 'none';
                 card.offsetHeight; // trigger reflow
                 card.style.animation = 'fadeIn 0.5s ease forwards';
 
-                const badge = document.getElementById('trafficLevelBadge');
-                badge.innerText = data.traffic_level + " Traffic";
-                badge.className = 'result-badge ' + (data.traffic_level === 'High' ? 'badge-high' : (data.traffic_level === 'Moderate' ? 'badge-mod' : 'badge-low'));
+                const pill = document.getElementById('trafficLevelBadge');
+                pill.innerText = "Traffic: " + data.traffic_level;
+                pill.className = 'risk-pill ' + (data.traffic_level === 'High' ? 'high' : (data.traffic_level === 'Moderate' ? 'mod' : 'low'));
 
                 document.getElementById('smartRecDeparture').innerText = data.recommended_departure;
                 document.getElementById('smartRecText').innerText = data.recommendation_text;
-                document.getElementById('smartDuration').innerText = data.estimated_duration_mins + ' mins';
+                
+                // Update Environmental Factors
+                document.getElementById('weatherImpactDesc').innerText = data.weather_impact;
+                document.getElementById('parkingImpactDesc').innerText = data.parking_availability;
+                
+                if(data.routes && data.routes.length > 0) {
+                    routeContainer.innerHTML = '<div class="route-cards-header">Route Options</div>';
+                    data.routes.forEach((route, index) => {
+                        const isSelected = index === 0;
+                        const rCard = document.createElement('div');
+                        rCard.className = `route-option ${isSelected ? 'selected' : ''}`;
+                        rCard.onclick = () => {
+                            document.querySelectorAll('.route-option').forEach(c => c.classList.remove('selected'));
+                            rCard.classList.add('selected');
+                            document.getElementById('smartDuration').innerText = route.duration + ' mins transit';
+                        };
+                        
+                        let icon = 'fa-road';
+                        if(route.type === 'Fastest') icon = 'fa-bolt';
+                        if(route.type === 'Eco-Friendly') icon = 'fa-leaf';
+                        if(route.type === 'Balanced') icon = 'fa-scale-balanced';
+                        
+                        rCard.innerHTML = `
+                            <div class="route-icon-wrap" style="background: var(--blue-dim); color: var(--blue);">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+                            <div class="route-details">
+                                <div class="route-name">${route.type}</div>
+                                <div class="route-sub">₹${route.cost} • ${route.emissions} emissions</div>
+                            </div>
+                            <div class="route-dur">${route.duration}</div>
+                        `;
+                        routeContainer.appendChild(rCard);
+                    });
+                    
+                    document.getElementById('smartDuration').innerText = data.routes[0].duration + ' mins transit';
+                }
                 
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -130,7 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn("Prediction API failed, using simulated prediction.");
                 
                 // Simulated fallback
+                const placeholder = document.getElementById('routingPlaceholder');
                 const card = document.getElementById('smartResultCard');
+                
+                if (placeholder) placeholder.style.display = 'none';
                 card.style.display = 'block';
                 card.style.animation = 'none';
                 card.offsetHeight;
@@ -148,9 +206,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const duration = Math.floor(Math.random() * 25) + 20;
                 arrDate.setMinutes(arrDate.getMinutes() - duration);
                 
+                document.getElementById('weatherImpactBadge').innerHTML = `<i class="fa-solid fa-cloud-sun"></i> <span>Simulated Check</span>`;
+                document.getElementById('parkingImpactBadge').innerHTML = `<i class="fa-solid fa-square-parking"></i> <span>Simulated Check</span>`;
+                
+                const routeContainer = document.getElementById('routeOptionsContainer');
+                routeContainer.innerHTML = `
+                    <div class="route-card selected">
+                        <div class="route-type"><i class="fa-solid fa-bolt"></i> Local Sim Route</div>
+                        <div class="route-duration">${duration} <span style="font-size:0.9rem; font-weight:500;">mins</span></div>
+                        <div class="route-metrics">
+                            <span><i class="fa-solid fa-indian-rupee-sign"></i> ₹180 est. cost</span>
+                            <span><i class="fa-solid fa-smog"></i> Medium emissions</span>
+                        </div>
+                    </div>
+                `;
+                
                 document.getElementById('smartRecDeparture').innerText = arrDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 document.getElementById('smartRecText').innerText = `Leave at ${arrDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} to reach by ${arrival_time} with ${mockLevel.toLowerCase()} traffic.`;
-                document.getElementById('smartDuration').innerText = duration + ' mins';
+                document.getElementById('smartDuration').innerText = duration + ' mins transit';
+                
+                document.getElementById('weatherImpactDesc').innerText = "Clear Skies";
+                document.getElementById('parkingImpactDesc').innerText = "Moderate Availability";
                 
                 card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -172,15 +248,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await res.json();
 
+                const placeholder = document.getElementById('simPlaceholder');
                 const area = document.getElementById('simResultArea');
+                
+                if (placeholder) placeholder.style.display = 'none';
                 area.style.display = 'block';
 
                 document.getElementById('simTargetTime').innerText = data.formatted_departure;
-                document.getElementById('simDuration').innerText = data.estimated_duration_mins + ' mins';
-                document.getElementById('simVolume').innerText = data.predicted_volume.toLocaleString() + ' vehicles';
+                document.getElementById('simDurationScore').innerText = data.estimated_duration_mins;
+                document.getElementById('simVolume').innerText = data.predicted_volume.toLocaleString();
             } catch (err) {
                 console.warn("Simulation API failed, using mock simulation.");
+                const placeholder = document.getElementById('simPlaceholder');
                 const area = document.getElementById('simResultArea');
+                
+                if (placeholder) placeholder.style.display = 'none';
                 area.style.display = 'block';
 
                 const [h, m] = departure_time.split(':');
@@ -204,8 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
             data.insights.forEach(insight => {
                 const cleanText = insight.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
                 const el = document.createElement('div');
-                el.className = 'insight-block glass-panel hover-glow';
-                el.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${cleanText}</span>`;
+                el.className = 'insight-card';
+                el.innerHTML = `
+                    <div class="insight-icon" style="background: var(--blue-dim); color: var(--blue);"><i class="fa-solid fa-lightbulb"></i></div>
+                    <div class="insight-title">Smart Intelligence</div>
+                    <div class="insight-body">${cleanText}</div>
+                    <div class="insight-footer"><i class="fa-solid fa-microchip"></i> AI Analysis Active</div>
+                `;
                 container.appendChild(el);
             });
         } catch (error) {
@@ -286,9 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helpers
     function getLevelColor(level) {
-        if(level === 'High') return 'var(--danger)';
-        if(level === 'Moderate') return 'var(--warning)';
-        return 'var(--success)';
+        if(level === 'High') return 'var(--rose)';
+        if(level === 'Moderate') return 'var(--amber)';
+        return 'var(--emerald)';
     }
 
     // Initialize data logic
