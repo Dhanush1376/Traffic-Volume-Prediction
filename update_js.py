@@ -3,7 +3,7 @@ import sys
 with open('assets/js/main.js', 'r', encoding='utf-8') as f:
     content = f.read()
 
-new_header = """const VERCEL_BACKEND_URL = 'http://127.0.0.1:5000';
+new_header = """const VERCEL_BACKEND_URL = '';
 const USE_MOCK = false;
 
 class TrafficEngine {

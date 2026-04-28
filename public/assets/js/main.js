@@ -1,4 +1,4 @@
-const VERCEL_BACKEND_URL = 'http://127.0.0.1:5000';
+const VERCEL_BACKEND_URL = '';
 const USE_MOCK = false;
 
 class TrafficEngine {
@@ -129,7 +129,8 @@ class TrafficEngine {
                 "Decision Tree": { accuracy: 0.69, rmse: 12900, mae: 8850, r2: 0.69 },
                 "Random Forest": { accuracy: 0.70, rmse: 12850, mae: 8800, r2: 0.70 },
                 "XGBoost": { accuracy: 0.69, rmse: 12950, mae: 8870, r2: 0.69 },
-                "ARIMA (Time-Series)": { accuracy: 0.96, rmse: 8500, mae: 6000, r2: 0.96 }
+                "ARIMA (Time-Series)": { accuracy: 0.96, rmse: 8500, mae: 6000, r2: 0.96 },
+                "Ensemble (Best)": { accuracy: 0.72, rmse: 12500, mae: 8500, r2: 0.72 }
             };
 
             const body = JSON.parse(options.body || '{}');
@@ -162,6 +163,16 @@ class TrafficEngine {
                     ],
                     insight: "The ARIMA model captures multi-seasonal traffic cycles with high precision across Bangalore's main corridors."
                 })
+            };
+        }
+
+        if (path === '/hotspots') {
+            return {
+                json: async () => [
+                    { name: "Silk Board Junction", percentage: "92% Congestion", status: "high" },
+                    { name: "Tin Factory / K.R. Puram", percentage: "65% Congestion", status: "mod" },
+                    { name: "Hebbal Flyover", percentage: "24% Congestion", status: "low" }
+                ]
             };
         }
 
@@ -299,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('sourceInput').selectedIndex = 0;
             document.getElementById('destInput').selectedIndex = 0;
             document.getElementById('arrivalTimeInput').value = '09:00';
+            document.getElementById('routeWeather').selectedIndex = 0;
 
             const placeholder = document.getElementById('routingPlaceholder');
             const resultCard = document.getElementById('smartResultCard');
@@ -313,7 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function initDashboard() {
         try {
+            const t0 = performance.now();
             const statusRes = await TrafficEngine.apiFetch('/api/status');
+            const ping = Math.round(performance.now() - t0);
             const statusData = await statusRes.json();
 
             document.getElementById('current-traffic-level').innerText = statusData.current_traffic_level;
@@ -322,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const pingEl = document.querySelector('.stat-card.violet .stat-value');
             if (pingEl) {
-                pingEl.innerText = `${Math.floor(Math.random() * 15 + 10)}ms`;
+                pingEl.innerText = `${ping}ms`;
             }
 
             const timeObj = new Date(statusData.timestamp);
@@ -366,6 +380,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const heatRes = await TrafficEngine.apiFetch('/api/heatmap');
             const heatData = await heatRes.json();
             initHeatmapChart(heatData.labels, heatData.data);
+
+            // Update Weekly Chart
+            initWeeklyChart();
+
+            // Update Hotspots
+            updateHotspots();
+
+            // Update Insights
+            loadInsights();
         } catch (error) {
             document.getElementById('server-status-text').innerText = 'Edge Engine Active (Serverless Mode)';
             document.getElementById('server-status-text').style.color = 'var(--accent)';
@@ -405,12 +428,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const source = document.getElementById('sourceInput').value;
             const dest = document.getElementById('destInput').value;
             const arrivalTime = document.getElementById('arrivalTimeInput').value;
+            const weather = document.getElementById('routeWeather').value;
+
+            if (source === dest) {
+                alert('Source and destination cannot be the same. Please select different points.');
+                return;
+            }
+
+            const submitBtn = predictForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Calculating...';
 
             try {
                 const res = await TrafficEngine.apiFetch('/api/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ source, destination: dest, arrival_time: arrivalTime, weather: 'Clear' }) // Default to Clear for Smart Route, or read from a selector if added
+                    body: JSON.stringify({ source, destination: dest, arrival_time: arrivalTime, weather: weather })
                 });
                 const data = await res.json();
                 window.appState = window.appState || {};
@@ -519,6 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('smartDuration').innerText = `${duration} mins transit`;
                 document.getElementById('weatherImpactDesc').innerText = 'Clear skies';
                 document.getElementById('parkingImpactDesc').innerText = 'Moderate availability';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
             }
         });
     }
@@ -650,6 +687,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function updateHotspots() {
+        try {
+            const res = await TrafficEngine.apiFetch('/api/hotspots');
+            const data = await res.json();
+            const container = document.querySelector('.hotspot-list');
+            if (container) {
+                container.innerHTML = '';
+                data.forEach(hs => {
+                    const item = document.createElement('div');
+                    item.className = 'hotspot-item';
+                    item.innerHTML = `
+                        <span class="hotspot-name">${hs.name}</span>
+                        <span class="hotspot-status ${hs.status}">${hs.percentage}</span>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        } catch (error) {
+            console.error("Hotspot update error:", error);
+        }
+    }
+
+
     Chart.defaults.color = '#5b6b5d';
     Chart.defaults.font.family = "'DM Sans', sans-serif";
     Chart.defaults.maintainAspectRatio = false;
@@ -697,9 +757,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function initWeeklyChart() {
+    async function initWeeklyChart() {
         const ctx = document.getElementById('weeklyChart');
         if (!ctx) return;
+
+        let weeklyLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        let weeklyData = [35000, 32000, 58000, 45000, 48000, 62000, 38000];
+
+        try {
+            const res = await TrafficEngine.apiFetch('/api/weekly');
+            const data = await res.json();
+            weeklyLabels = data.labels;
+            weeklyData = data.data;
+        } catch (err) {
+            console.warn("Weekly data fetch failed, using fallback.");
+        }
 
         const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-3').trim();
         const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
@@ -707,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const datasets = [
             {
                 label: '1994 Baseline',
-                data: [5000, 4500, 12000, 8000, 9000, 15000, 6000],
+                data: weeklyData.map(v => Math.floor(v * 0.2)),
                 borderColor: 'rgba(154, 176, 156, 0.2)',
                 borderDash: [5, 5],
                 fill: false,
@@ -715,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             {
                 label: '2004 Growth',
-                data: [12000, 11000, 25000, 18000, 19000, 28000, 14000],
+                data: weeklyData.map(v => Math.floor(v * 0.45)),
                 borderColor: 'rgba(154, 176, 156, 0.4)',
                 borderDash: [2, 2],
                 fill: false,
@@ -723,14 +795,14 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             {
                 label: '2014 Scale',
-                data: [22000, 21000, 42000, 32000, 35000, 48000, 28000],
+                data: weeklyData.map(v => Math.floor(v * 0.75)),
                 borderColor: 'rgba(154, 176, 156, 0.7)',
                 fill: false,
                 pointRadius: 0
             },
             {
-                label: '2024 Prediction',
-                data: [35000, 32000, 58000, 45000, 48000, 62000, 38000],
+                label: '2024 Prediction (Live)',
+                data: weeklyData,
                 borderColor: 'var(--olive-800)',
                 backgroundColor: 'rgba(91, 107, 93, 0.1)',
                 fill: true,
@@ -742,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.weeklyChartInstance = new Chart(ctx.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: weeklyLabels,
                 datasets: datasets
             },
             options: {

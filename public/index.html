@@ -202,6 +202,16 @@
                                     <label><i class="fa-solid fa-stopwatch"></i> Required Arrival Time</label>
                                     <input type="time" id="arrivalTimeInput" required value="09:00">
                                 </div>
+
+                                <div class="field span2 mt-10">
+                                    <label><i class="fa-solid fa-cloud-sun"></i> Current Weather</label>
+                                    <select id="routeWeather">
+                                        <option value="clear">Clear Skies</option>
+                                        <option value="rain">Heavy Bangalore Rain</option>
+                                        <option value="cloudy">Overcast</option>
+                                    </select>
+                                </div>
+
                             </div>
                             
                             <div class="submit-row">
@@ -399,17 +409,8 @@
                     </div>
                     <div class="panel-body">
                         <div class="hotspot-list">
-                            <div class="hotspot-item">
-                                <span class="hotspot-name">Silk Board Junction</span>
-                                <span class="hotspot-status high">92% Congestion</span>
-                            </div>
-                            <div class="hotspot-item">
-                                <span class="hotspot-name">Tin Factory / K.R. Puram</span>
-                                <span class="hotspot-status mod">65% Congestion</span>
-                            </div>
-                            <div class="hotspot-item">
-                                <span class="hotspot-name">Hebbal Flyover</span>
-                                <span class="hotspot-status low">24% Congestion</span>
+                            <div class="hotspot-loading">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Analyzing live junction data...
                             </div>
                         </div>
                     </div>
@@ -450,7 +451,12 @@
             <i class="fa-solid fa-flask nav-icon"></i>
             <span>Sim</span>
         </button>
+        <button class="nav-item" data-section="model-lab">
+            <i class="fa-solid fa-microscope nav-icon"></i>
+            <span>ML Lab</span>
+        </button>
         <button class="nav-item" data-section="insights">
+
             <i class="fa-solid fa-microchip nav-icon"></i>
             <span>AI</span>
         </button>

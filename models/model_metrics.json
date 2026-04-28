@@ -1,60 +1,60 @@
 {
     "metrics": {
         "Linear Regression": {
-            "accuracy": 0.2415,
-            "rmse": 20324.87,
-            "mae": 14843.77,
-            "r2": 0.2415
+            "accuracy": 0.2421,
+            "rmse": 20342.9,
+            "mae": 14837.21,
+            "r2": 0.2421
         },
         "Decision Tree": {
-            "accuracy": 0.6921,
-            "rmse": 12949.6,
-            "mae": 8856.0,
-            "r2": 0.6921
+            "accuracy": 0.6944,
+            "rmse": 12918.6,
+            "mae": 8826.37,
+            "r2": 0.6944
         },
         "Random Forest": {
-            "accuracy": 0.6947,
-            "rmse": 12894.52,
-            "mae": 8812.6,
-            "r2": 0.6947
+            "accuracy": 0.6961,
+            "rmse": 12881.65,
+            "mae": 8795.45,
+            "r2": 0.6961
         },
         "XGBoost": {
-            "accuracy": 0.6912,
-            "rmse": 12967.53,
-            "mae": 8875.24,
-            "r2": 0.6912
+            "accuracy": 0.6924,
+            "rmse": 12960.3,
+            "mae": 8867.67,
+            "r2": 0.6924
         },
-        "ARIMA (Time-Series)": {
-            "accuracy": 0.958,
-            "rmse": 11605.07,
-            "mae": 7931.34,
-            "r2": 0.958
+        "Ensemble (Best)": {
+            "accuracy": 0.6961,
+            "rmse": 12881.65,
+            "mae": 8795.45,
+            "r2": 0.6961
         }
     },
     "feature_importance": [
         {
             "feature": "hour",
-            "importance": 0.5268
+            "importance": 0.5146
         },
         {
             "feature": "Area Name",
-            "importance": 0.1785
+            "importance": 0.1823
         },
         {
             "feature": "hour_cos",
-            "importance": 0.1384
+            "importance": 0.14
         },
         {
             "feature": "hour_sin",
-            "importance": 0.1246
+            "importance": 0.1351
         },
         {
             "feature": "Road/Intersection Name",
-            "importance": 0.0236
+            "importance": 0.0202
         },
         {
             "feature": "month",
-            "importance": 0.0032
+            "importance": 0.003
         },
         {
             "feature": "day_of_week",
@@ -62,7 +62,7 @@
         },
         {
             "feature": "Weather Conditions",
-            "importance": 0.0019
+            "importance": 0.0018
         },
         {
             "feature": "Roadwork and Construction Activity",

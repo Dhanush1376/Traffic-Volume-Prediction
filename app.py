@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import random
 import numpy as np
@@ -7,8 +7,17 @@ from datetime import datetime, timedelta
 import joblib
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='public')
 CORS(app)
+
+@app.route('/')
+def index():
+    return send_from_directory('public', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('public', path)
+
 
 # Load Trained Models & Metadata
 MODELS = {}
@@ -256,7 +265,68 @@ def get_heatmap():
 
 @app.route('/api/insights', methods=['GET'])
 def get_insights():
-    return jsonify({"insights": ["Traffic is 40% higher on Mondays.", "Best travel time: 11 AM - 3 PM."]})
+    current_hour = datetime.now().hour
+    current_day = datetime.now().weekday()
+    
+    # Dynamic insight 1: Peak hour prediction
+    vols = [get_base_volume(h, current_day) for h in range(24)]
+    peak_h = np.argmax(vols)
+    peak_time = datetime.strptime(f"{peak_h}:00", "%H:%M").strftime("%I %p")
+    
+    # Dynamic insight 2: Weekend vs Weekday comparison
+    weekday_vol = get_base_volume(current_hour, 0) # Monday
+    weekend_vol = get_base_volume(current_hour, 6) # Sunday
+    diff_pct = int(abs(weekday_vol - weekend_vol) / weekday_vol * 100)
+    
+    # Dynamic insight 3: Weather impact
+    rain_vol = get_base_volume(current_hour, current_day, weather="Rain")
+    clear_vol = get_base_volume(current_hour, current_day, weather="Clear")
+    weather_impact = int((rain_vol - clear_vol) / clear_vol * 100)
+
+    insights = [
+        f"Today's peak congestion is predicted at {peak_time}.",
+        f"Traffic is currently {diff_pct}% lower on weekends vs workdays.",
+        f"Rain events increase trip duration by up to {weather_impact}% today.",
+        "Silk Board remains the highest delay node in the network.",
+        f"The best window for travel today is between 11 AM and 3 PM."
+    ]
+    
+    return jsonify({"insights": random.sample(insights, 3)})
+
+
+@app.route('/api/hotspots', methods=['GET'])
+def get_hotspots():
+    current_hour = datetime.now().hour
+    hotspots = [
+        {"name": "Silk Board Junction", "area": "Silk Board", "road": "Hosur Road"},
+        {"name": "Tin Factory / K.R. Puram", "area": "K.R. Puram", "road": "Old Madras Road"},
+        {"name": "Hebbal Flyover", "area": "Hebbal", "road": "Bellary Road"}
+    ]
+    results = []
+    for hs in hotspots:
+        vol = get_base_volume(current_hour, area=hs['area'], road=hs['road'])
+        # Calculate percentage (max capacity assumed 60000 for calculation)
+        percentage = min(100, int((vol / 60000) * 100))
+        level = "high" if percentage > 80 else ("mod" if percentage > 50 else "low")
+        results.append({
+            "name": hs['name'],
+            "percentage": f"{percentage}% Congestion",
+            "status": level
+        })
+    return jsonify(results)
+
+@app.route('/api/weekly', methods=['GET'])
+def get_weekly():
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    # Predicted peaks for each day
+    data = []
+    for d in range(7):
+        # Sample peak hour (9 AM)
+        vol = get_base_volume(9, d)
+        data.append(vol)
+    return jsonify({"labels": days, "data": data})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
