@@ -6,3 +6,7 @@ plotly
 ipykernel
 flask
 flask-cors
+seaborn
+joblib
+xgboost
+pmdarima

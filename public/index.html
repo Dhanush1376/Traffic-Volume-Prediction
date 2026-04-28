@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Intelligence</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="loader-track">
+                <div class="loader-bar"></div>
+            </div>
+            <p class="loader-text">Initializing Traffic Core...</p>
+        </div>
+    </div>
+
+    <div class="shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-mark"><i class="fa-solid fa-layer-group"></i></div>
+                <div class="logo-name">Traffic<span>Core</span></div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-label">Main System</div>
+                <div class="nav-item active" data-section="dashboard">
+                    <i class="fa-solid fa-chart-line nav-icon"></i> Dashboard
+                </div>
+                <div class="nav-item" data-section="smart-prediction">
+                    <i class="fa-solid fa-route nav-icon"></i> Smart Routing
+                </div>
+                <div class="nav-item" data-section="simulation">
+                    <i class="fa-solid fa-flask nav-icon"></i> Simulator
+                </div>
+                
+                <div class="nav-label">ML Engineering</div>
+                <div class="nav-item" data-section="model-lab">
+                    <i class="fa-solid fa-microscope nav-icon"></i> Model Comparison
+                </div>
+                <div class="nav-label">Analytics</div>
+                <div class="nav-item" data-section="insights">
+                    <i class="fa-solid fa-microchip nav-icon"></i> AI Insights
+                </div>
+                <div class="nav-item" data-section="planner">
+                    <i class="fa-solid fa-calendar-week nav-icon"></i> 30-Year Trends
+                </div>
+            </div>
+
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title" id="section-title">Overview <span>Dashboard</span></h1>
+                    <p class="page-subtitle" id="subtitle-text">Real-time traffic intelligence and analytics</p>
+                    <p id="server-status-text">Edge Engine Active (Serverless Mode)</p>
+                </div>
+                <div class="header-controls">
+                    <div class="theme-switch-wrapper" title="Toggle Light/Dark Mode">
+                        <label class="theme-switch" for="theme-checkbox">
+                            <input type="checkbox" id="theme-checkbox" />
+                            <div class="slider round">
+                                <i class="fa-solid fa-sun icon-sun"></i>
+                                <i class="fa-solid fa-moon icon-moon"></i>
+                            </div>
+                        </label>
+                    </div>
+                    <button class="ctrl-btn" id="sync-btn"><i class="fa-solid fa-rotate-right"></i> Sync</button>
+                    <button class="ctrl-btn primary" id="export-btn"><i class="fa-solid fa-download"></i> Export</button>
+                </div>
+            </header>
+
+            <!-- Alerts Container -->
+            <div id="alerts-container" class="alerts-panel" style="display: none;">
+                <div class="alerts-header">
+                    <h3><i class="fa-solid fa-bell"></i> Active Alerts</h3>
+                    <div class="alert-count-badge" id="alert-count">0</div>
+                </div>
+                <div class="alert-list" id="alert-list">
+                    <!-- Alerts injected here -->
+                </div>
+            </div>
+
+            <!-- 1. Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="stats-row">
+                    <div class="stat-card blue">
+                        <div class="stat-top">
+                            <div class="stat-icon-wrap"><i class="fa-solid fa-network-wired"></i></div>
+                            <div class="stat-tag">LIVE</div>
+                        </div>
+                        <div class="stat-value" id="current-traffic-level">--</div>
+                        <div class="stat-label">Network Status <i class="fa-solid fa-circle-info" title="Real-time network traffic density"></i></div>
+                        <div class="stat-trend"><i class="fa-solid fa-arrow-trend-up"></i> <span>Monitoring active</span></div>
+                    </div>
+                    
+                    <div class="stat-card emerald">
+                        <div class="stat-top">
+                            <div class="stat-icon-wrap"><i class="fa-solid fa-server"></i></div>
+                            <div class="stat-tag">SYSTEM</div>
+                        </div>
+                        <div class="stat-value" id="system-health">Online</div>
+                        <div class="stat-label">Core Health <i class="fa-solid fa-circle-info" title="Operational status of AI edge nodes"></i></div>
+                        <div class="stat-trend"><i class="fa-solid fa-check"></i> <span>All systems nominal</span></div>
+                    </div>
+                    
+                    <div class="stat-card amber">
+                        <div class="stat-top">
+                            <div class="stat-icon-wrap"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                            <div class="stat-tag">SYNC</div>
+                        </div>
+                        <div class="stat-value" id="last-updated">Loading...</div>
+                        <div class="stat-label">Last Data Sync <i class="fa-solid fa-circle-info" title="Last successful data ingestion from sensors"></i></div>
+                        <div class="stat-trend"><i class="fa-solid fa-bolt"></i> <span>Real-time feed</span></div>
+                    </div>
+                    
+                    <div class="stat-card violet">
+                        <div class="stat-top">
+                            <div class="stat-icon-wrap"><i class="fa-solid fa-satellite-dish"></i></div>
+                            <div class="stat-tag">API</div>
+                        </div>
+                        <div class="stat-value">24ms</div>
+                        <div class="stat-label">Ping Latency <i class="fa-solid fa-circle-info" title="Network response time from edge nodes"></i></div>
+                        <div class="stat-trend"><i class="fa-solid fa-wifi"></i> <span>Excellent connection</span></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fa-solid fa-chart-area"></i> Live 24h Volume Matrix</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="chart-container">
+                            <canvas id="heatmapChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Smart Prediction Section -->
+            <section id="smart-prediction" class="section">
+                <div class="prediction-layout">
+                    <!-- Form Side -->
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h2 class="form-card-title">Calculate Optimal Route</h2>
+                            <p class="form-card-desc">Determine the mathematically optimal departure window considering traffic, weather, and parking.</p>
+                        </div>
+                        
+                        <form id="smartPredictForm">
+                            <div class="form-grid">
+                                <div class="field span2">
+                                    <label><i class="fa-solid fa-map-pin"></i> Origin Point</label>
+                                    <select id="sourceInput" required>
+                                        <option value="Indiranagar">Indiranagar Sector</option>
+                                        <option value="Whitefield">Whitefield Zone</option>
+                                        <option value="Koramangala">Koramangala Hub</option>
+                                        <option value="Electronic City">E-City Tech Park</option>
+                                        <option value="Jayanagar">Jayanagar Block</option>
+                                        <option value="M.G. Road">M.G. Road Core</option>
+                                        <option value="HSR Layout">HSR Layout Node</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-divider span2">TO DESTINATION</div>
+                                
+                                <div class="field span2">
+                                    <label><i class="fa-solid fa-flag-checkered"></i> Destination Point</label>
+                                    <select id="destInput" required>
+                                        <option value="MG Road">MG Road Core</option>
+                                        <option value="Manyata Tech Park">Manyata Campus</option>
+                                        <option value="HSR Layout">HSR Layout Node</option>
+                                        <option value="Kempegowda Airport">KIAL Airport</option>
+                                        <option value="Indiranagar">Indiranagar Sector</option>
+                                        <option value="Whitefield">Whitefield Zone</option>
+                                        <option value="Electronic City">E-City Tech Park</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="field span2 mt-10">
+                                    <label><i class="fa-solid fa-stopwatch"></i> Required Arrival Time</label>
+                                    <input type="time" id="arrivalTimeInput" required value="09:00">
+                                </div>
+                            </div>
+                            
+                            <div class="submit-row">
+                                <button type="button" class="btn btn-ghost"><i class="fa-solid fa-eraser"></i> Clear</button>
+                                <button type="submit" class="btn btn-blue"><i class="fa-solid fa-microchip"></i> Execute Calculation</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Results Side -->
+                    <div id="routingPlaceholder" class="result-sidebar">
+                        <div class="result-hero placeholder-panel">
+                            <i class="fa-solid fa-route placeholder-icon"></i>
+                            <div class="result-eyebrow">Awaiting Calculation</div>
+                            <p class="placeholder-text">Enter your origin and destination to see optimal travel intelligence.</p>
+                        </div>
+                    </div>
+
+                    <div id="smartResultCard" class="result-sidebar" style="display: none;">
+                        <div class="result-hero">
+                            <div class="result-eyebrow">Calculated Departure</div>
+                            <div class="result-time" id="smartRecDeparture">--:--</div>
+                            <div class="result-period" id="smartDuration">-- mins transit</div>
+                            
+                            <div class="result-meta">
+                                <div class="risk-pill" id="trafficLevelBadge">Traffic: --</div>
+                            </div>
+                            
+                            <p id="smartRecText" class="mt-10"></p>
+                        </div>
+                        
+                        <div class="route-cards">
+                            <div class="route-cards-header">Environmental Factors</div>
+                            <div class="route-option">
+                                <div class="route-icon-wrap">
+                                    <i class="fa-solid fa-cloud-sun-rain"></i>
+                                </div>
+                                <div class="route-details">
+                                    <div class="route-name" id="weatherImpactName">Weather Conditions</div>
+                                    <div class="route-sub" id="weatherImpactDesc">Scanning...</div>
+                                </div>
+                            </div>
+                            <div class="route-option">
+                                <div class="route-icon-wrap">
+                                    <i class="fa-solid fa-square-parking"></i>
+                                </div>
+                                <div class="route-details">
+                                    <div class="route-name" id="parkingImpactName">Destination Parking</div>
+                                    <div class="route-sub" id="parkingImpactDesc">Scanning...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="route-cards" id="routeOptionsContainer">
+                            <div class="route-cards-header">Route Options</div>
+                            <!-- Route Options will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. What-if Simulation Section -->
+            <section id="simulation" class="section">
+                <div class="sim-layout">
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <h2 class="form-card-title">Temporal Simulator</h2>
+                            <p class="form-card-desc">Test departure variables against historical and real-time network load predictions.</p>
+                        </div>
+                        
+                        <form id="simForm">
+                            <div class="form-grid full">
+                                <div class="field">
+                                    <label><i class="fa-solid fa-timeline"></i> Input Departure Time</label>
+                                    <input type="time" id="simTimeInput" required value="08:00">
+                                </div>
+                                <div class="field">
+                                    <label><i class="fa-solid fa-cloud-sun"></i> Simulation Weather</label>
+                                    <select id="simWeather">
+                                        <option value="clear">Clear Skies</option>
+                                        <option value="rain">Heavy Bangalore Rain</option>
+                                        <option value="cloudy">Overcast</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="submit-row">
+                                <button type="submit" class="btn btn-blue"><i class="fa-solid fa-play"></i> Run Simulation</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div id="simPlaceholder" class="sim-result-block placeholder-panel">
+                        <i class="fa-solid fa-clock-rotate-left placeholder-icon"></i>
+                        <div class="result-eyebrow">Enter Time to Simulate</div>
+                    </div>
+
+                    <div id="simResultArea" class="sim-result-block" style="display: none;">
+                        <div class="sim-label">Target Metric for <span id="simTargetTime">--</span></div>
+                        <div class="sim-score" id="simDurationScore">--</div>
+                        <div class="result-period">MINUTES</div>
+                        
+                        <div class="sim-metrics">
+                            <div class="sim-metric">
+                                <div class="sim-metric-val" id="simVolume">--</div>
+                                <div class="sim-metric-lbl">Est. Volume</div>
+                            </div>
+                            <div class="sim-metric">
+                                <div class="sim-metric-val" id="simCongestion">Moderate</div>
+                                <div class="sim-metric-lbl">Congestion</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. ML Model Lab -->
+            <section id="model-lab" class="section">
+                <div class="panel mb-20">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fa-solid fa-flask-vial"></i> Multi-Model Engineering Laboratory</div>
+                        <div class="panel-subtitle">Benchmarking Regression, Ensemble, and Deep Learning models on Bangalore historical data.</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="lab-controls">
+                            <div class="field">
+                                <label>Target Hour</label>
+                                <select id="labHour">
+                                    <option value="9">09:00 AM (Peak)</option>
+                                    <option value="12">12:00 PM (Midday)</option>
+                                    <option value="18">06:00 PM (Evening)</option>
+                                    <option value="23">11:00 PM (Off-peak)</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Target Day</label>
+                                <select id="labDay">
+                                    <option value="0">Monday (Workday)</option>
+                                    <option value="3">Thursday (Mid-week)</option>
+                                    <option value="6">Sunday (Weekend)</option>
+                                </select>
+                            </div>
+                            <button class="btn primary" id="runLabBtn">Run Benchmark Sequence</button>
+                        </div>
+
+                        <div class="lab-metrics-grid" id="labMetricsGrid">
+                            <!-- Metrics injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-chart-simple"></i> Prediction Variance</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="chart-container">
+                                <canvas id="modelComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-brain"></i> Explainable AI (XAI)</div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="chart-container">
+                                <canvas id="featureImportanceChart"></canvas>
+                            </div>
+                            <div class="xai-insight mt-15" id="xaiInsightText">
+                                Run benchmark to generate feature attribution analysis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. AI Insights Section -->
+            <section id="insights" class="section">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-title">Automated <span>Briefing</span></h2>
+                        <p class="page-subtitle">Machine learning insights derived from historical traffic volumes.</p>
+                    </div>
+                </div>
+                
+                <div id="insights-container" class="insights-grid">
+                    <!-- Insights will be injected here -->
+                </div>
+
+                <div class="panel mt-20">
+                    <div class="panel-header">
+                        <div class="panel-title"><i class="fa-solid fa-triangle-exclamation"></i> Bangalore Hotspot Monitor</div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="hotspot-list">
+                            <div class="hotspot-item">
+                                <span class="hotspot-name">Silk Board Junction</span>
+                                <span class="hotspot-status high">92% Congestion</span>
+                            </div>
+                            <div class="hotspot-item">
+                                <span class="hotspot-name">Tin Factory / K.R. Puram</span>
+                                <span class="hotspot-status mod">65% Congestion</span>
+                            </div>
+                            <div class="hotspot-item">
+                                <span class="hotspot-name">Hebbal Flyover</span>
+                                <span class="hotspot-status low">24% Congestion</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Weekly Planner -->
+            <section id="planner" class="section">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <div class="panel-title"><i class="fa-solid fa-chart-area"></i> Macro Trend Analysis</div>
+                            <div class="panel-subtitle">7-day predictive congestion modeling</div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <button class="nav-item active" data-section="dashboard">
+            <i class="fa-solid fa-chart-line nav-icon"></i>
+            <span>Dash</span>
+        </button>
+        <button class="nav-item" data-section="smart-prediction">
+            <i class="fa-solid fa-route nav-icon"></i>
+            <span>Route</span>
+        </button>
+        <button class="nav-item" data-section="simulation">
+            <i class="fa-solid fa-flask nav-icon"></i>
+            <span>Sim</span>
+        </button>
+        <button class="nav-item" data-section="insights">
+            <i class="fa-solid fa-microchip nav-icon"></i>
+            <span>AI</span>
+        </button>
+        <button class="nav-item" data-section="planner">
+            <i class="fa-solid fa-calendar-week nav-icon"></i>
+            <span>Plan</span>
+        </button>
+    </nav>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

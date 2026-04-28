@@ -4,14 +4,6 @@
     {
       "src": "app.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -20,8 +12,11 @@
       "dest": "app.py"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
   ]
 }
